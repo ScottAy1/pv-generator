@@ -624,8 +624,7 @@ export default function PdfDocument({ data }: PdfDocumentProps) {
                 return (
                   <View
                     key={`${row.parcelId}-${row.status}-${index}`}
-                    style={[styles.noteRow, isLast && styles.noteRowNoBorder]}
-                    wrap={false}
+                    style={isLast ? [styles.noteRow, styles.noteRowNoBorder] : styles.noteRow} wrap={false}
                   >
                     <Text style={styles.noteCell}>{valueOrFallback(row.parcelId)}</Text>
                     <Text style={[styles.noteCell, styles.noteCellNoBorder]}>{valueOrFallback(row.status)}</Text>
@@ -663,8 +662,7 @@ export default function PdfDocument({ data }: PdfDocumentProps) {
                   return (
                     <View
                       key={`${row.item}-${row.identifier}-${index}`}
-                      style={[styles.noteRow, isLast && styles.noteRowNoBorder]}
-                      wrap={false}
+                      style={isLast ? [styles.noteRow, styles.noteRowNoBorder] : styles.noteRow} wrap={false}
                     >
                       <Text style={styles.noteCell}>{valueOrFallback(row.item)}</Text>
                       <Text style={styles.noteCell}>{valueOrFallback(row.identifier)}</Text>
