@@ -1,15 +1,15 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { type ContainerSealData, type OpenedParcelData, type PVFormData, type SamplingItemData } from '../components/PdfDocument';
 
 const DynamicDownloadButton = dynamic(() => import('@/components/DownloadButton'), { ssr: false });
 
 const SCHNEIDER_CLIENT = 'SCHENEIDER ELECTRIC ALGERIE';
-const PREDEFINED_CONSTATATIONS = [
-  'Après pointage, vérification et ouverture des Conteneurs nous avons constaté ce qui suit :',
-  'Le conteneur a subi une visite intégrale sur demande de l’inspecteur de douane chargé du dossier, lors de la visite plusieurs cartons ont été ouverts pour inspection par les services douane/fraude .',
+const BASE_CONSTATATION_SENTENCES = [
+  'Après pointage, vérification et ouverture des {containerNoun} nous avons constaté ce qui suit :',
+  'Le {containerWord} a subi une visite intégrale sur demande de l’inspecteur de douane chargé du dossier, lors de la visite plusieurs cartons ont été ouverts pour inspection par les services douane/fraude .',
   'Les colis ont été ouverts sur demande de l’inspecteur de douane chargé du dossier ;',
   'À l’ouverture des colis nous avons constaté que la marchandise à l’intérieur est à l’état neuf ;',
   'L’emballage a été déchiré pour inspection et vérification du matériel électrique par les services de douane ;',
@@ -52,33 +52,22 @@ function withTextFallback(value: string | undefined | null): string {
   return trimmed && trimmed.length > 0 ? trimmed : 'N/A';
 }
 
-function createInitialConstatations(): ConstatationItem[] {
-  return PREDEFINED_CONSTATATIONS.map((text, index) => ({
+function buildPredefinedConstatations(hasMultipleContainers: boolean): string[] {
+  const containerNoun = hasMultipleContainers ? 'conteneurs' : 'conteneur';
+  const containerWord = hasMultipleContainers ? 'conteneurs' : 'conteneur';
+
+  return BASE_CONSTATATION_SENTENCES.map((sentence) =>
+    sentence.replace(/\{containerNoun\}/g, containerNoun).replace(/\{containerWord\}/g, containerWord),
+  );
+}
+
+function createInitialConstatations(hasMultipleContainers = false): ConstatationItem[] {
+  return buildPredefinedConstatations(hasMultipleContainers).map((text, index) => ({
     id: `default-${index}`,
     text,
     isChecked: true,
     isCustom: false,
   }));
-}
-
-function formatConstatationByContainerCount(text: string, hasMultipleContainers: boolean): string {
-  if (hasMultipleContainers) {
-    return text
-      .replace(/\bLe conteneur a subi\b/g, 'Les conteneurs ont subi')
-      .replace(/\ble conteneur a subi\b/g, 'les conteneurs ont subi')
-      .replace(/\bdu conteneur\b/g, 'des conteneurs')
-      .replace(/\bau conteneur\b/g, 'aux conteneurs')
-      .replace(/\bConteneur\b/g, 'Conteneurs')
-      .replace(/\bconteneur\b/g, 'conteneurs');
-  }
-
-  return text
-    .replace(/\bLes conteneurs ont subi\b/g, 'Le conteneur a subi')
-    .replace(/\bles conteneurs ont subi\b/g, 'le conteneur a subi')
-    .replace(/\bdes conteneurs\b/g, 'du conteneur')
-    .replace(/\baux conteneurs\b/g, 'au conteneur')
-    .replace(/\bConteneurs\b/g, 'Conteneur')
-    .replace(/\bconteneurs\b/g, 'conteneur');
 }
 
 function sanitizeFilenameSegment(input: string): string {
@@ -107,7 +96,7 @@ export default function HomePage() {
   const [openedParcels, setOpenedParcels] = useState<OpenedParcelData[]>([{ parcelId: '', status: 'RAS' }]);
   const [hasCustomsSampling, setHasCustomsSampling] = useState(false);
   const [samplingItems, setSamplingItems] = useState<SamplingItemData[]>([{ item: '', identifier: '', quantity: '' }]);
-  const [constatationItems, setConstatationItems] = useState<ConstatationItem[]>(createInitialConstatations);
+  const [constatationItems, setConstatationItems] = useState<ConstatationItem[]>(() => createInitialConstatations(false));
   const [customConstatation, setCustomConstatation] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
@@ -140,12 +129,35 @@ export default function HomePage() {
   const [isReadingImages, setIsReadingImages] = useState(false);
   const [uploadError, setUploadError] = useState<string>('');
 
+  const hasMultipleContainers = containerData.length > 1;
+
+  useEffect(() => {
+    const dynamicDefaults = buildPredefinedConstatations(hasMultipleContainers);
+
+    setConstatationItems((previous) => {
+      const next = [...previous];
+
+      for (let index = 0; index < dynamicDefaults.length; index += 1) {
+        const defaultId = `default-${index}`;
+        const existingIndex = next.findIndex((item) => item.id === defaultId);
+
+        if (existingIndex >= 0) {
+          next[existingIndex] = {
+            ...next[existingIndex],
+            text: dynamicDefaults[index],
+          };
+        }
+      }
+
+      return next;
+    });
+  }, [hasMultipleContainers]);
+
   const pdfFormData = useMemo<PVFormData>(
     () => {
-      const hasMultipleContainers = containerData.length > 1;
       const selectedConstatations = constatationItems
         .filter((item) => item.isChecked)
-        .map((item) => `• ${formatConstatationByContainerCount(item.text.trim(), hasMultipleContainers)}`);
+        .map((item) => `• ${item.text.trim()}`);
 
       return {
         ...form,
