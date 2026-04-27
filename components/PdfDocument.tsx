@@ -571,28 +571,27 @@ export default function PdfDocument({ data }: PdfDocumentProps) {
         <View wrap={false}>
           <Text style={styles.sectionTitle}>{identificationTitle}</Text>
           <View style={styles.containerTable}>
-          <View style={styles.containerHeaderRow}>
-            <Text style={styles.containerHeaderText}>Conteneurs et scellés</Text>
-          </View>
-          {safeContainerData.map((item, index) => {
-            const isLast = index === safeContainerData.length - 1;
-            return (
-              <View
-                key={`${item.container}-${item.seal}-${index}`}
-                style={[styles.containerRow, isLast && styles.containerRowNoBorder]}
-                wrap={false}
-              >
-                <View style={styles.containerCell}>
-                  <Text style={styles.containerCellLabel}>TC N°</Text>
-                  <Text style={styles.containerCellValue}>{valueOrFallback(item.container)}</Text>
+            <View style={styles.containerHeaderRow}>
+              <Text style={styles.containerHeaderText}>Conteneurs et scellés</Text>
+            </View>
+            {safeContainerData.map((item, index) => {
+              const isLast = index === safeContainerData.length - 1;
+              return (
+                <View
+                  key={`${item.container}-${item.seal}-${index}`}
+                  style={isLast ? [styles.containerRow, styles.containerRowNoBorder] : styles.containerRow} wrap={false}
+                >
+                  <View style={styles.containerCell}>
+                    <Text style={styles.containerCellLabel}>TC N°</Text>
+                    <Text style={styles.containerCellValue}>{valueOrFallback(item.container)}</Text>
+                  </View>
+                  <View style={[styles.containerCell, styles.containerCellNoBorder]}>
+                    <Text style={styles.containerCellLabel}>Numero de scelle</Text>
+                    <Text style={styles.containerCellValue}>{valueOrFallback(item.seal)}</Text>
+                  </View>
                 </View>
-                <View style={[styles.containerCell, styles.containerCellNoBorder]}>
-                  <Text style={styles.containerCellLabel}>Numero de scelle</Text>
-                  <Text style={styles.containerCellValue}>{valueOrFallback(item.seal)}</Text>
-                </View>
-              </View>
-            );
-          })}
+              );
+            })}
           </View>
         </View>
 
