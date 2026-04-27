@@ -53,7 +53,7 @@ type PdfDocumentProps = {
 
 const PRIMARY = '#000080';
 const SECONDARY = '#4F81BD';
-const LOGO_SRC = typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : '/logo.png';
+const LOGO_SRC = typeof window !== 'undefined' ? `${window.location.origin}/assets/logo.png` : '/assets/logo.png';
 
 const styles = StyleSheet.create({
   page: {
@@ -88,6 +88,11 @@ const styles = StyleSheet.create({
     width: 160,
     height: 78,
     objectFit: 'contain',
+  },
+  logoPlaceholderText: {
+    marginTop: 4,
+    fontSize: 8,
+    color: '#64748b',
   },
   companyCard: {
     flex: 1,
@@ -454,6 +459,7 @@ function FirstPageHeader() {
     <View style={styles.header}>
       <View style={styles.logoBlock}>
         <PdfImage src={LOGO_SRC} style={styles.logoImage} />
+        <Text style={styles.logoPlaceholderText}>assets/logo.png</Text>
       </View>
       <View style={styles.companyCard}>
         <Text style={styles.companyName}>BECTIM</Text>

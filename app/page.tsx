@@ -7,7 +7,21 @@ import { type ContainerSealData, type OpenedParcelData, type PVFormData, type Sa
 const DynamicDownloadButton = dynamic(() => import('@/components/DownloadButton'), { ssr: false });
 
 const SCHNEIDER_CLIENT = 'SCHENEIDER ELECTRIC ALGERIE';
-const DEFAULT_CONSTATATIONS = '';
+const PREDEFINED_CONSTATATIONS = [
+  'Après pointage, vérification et ouverture des Conteneurs nous avons constaté ce qui suit :',
+  'Le conteneur a subi une visite intégrale sur demande de l’inspecteur de douane chargé du dossier, lors de la visite plusieurs cartons ont été ouverts pour inspection par les services douane/fraude .',
+  'Les colis ont été ouverts sur demande de l’inspecteur de douane chargé du dossier ;',
+  'À l’ouverture des colis nous avons constaté que la marchandise à l’intérieur est à l’état neuf ;',
+  'L’emballage a été déchiré pour inspection et vérification du matériel électrique par les services de douane ;',
+  'Aucune anomalie apparente n’a été constatée durant notre intervention',
+] as const;
+
+type ConstatationItem = {
+  id: string;
+  text: string;
+  isChecked: boolean;
+  isCustom: boolean;
+};
 
 type AutoFillRule = {
   transitaire: string;
@@ -31,24 +45,41 @@ const AUTO_FILL_BY_CLIENT: Record<string, AutoFillRule> = {
 
 const REQUIRED_TEXT_FIELDS: Array<
   keyof Omit<PVFormData, 'images' | 'containerData' | 'openedParcels' | 'hasCustomsSampling' | 'samplingItems'>
-> = [
-  'reportNumber',
-  'client',
-  'transitaire',
-  'interventionDate',
-  'location',
-  'factureNumber',
-  'blNumber',
-  'numberOfPackages',
-  'packagingType',
-  'goodsNature',
-  'shipName',
-  'arrivalDate',
-  'loadingPort',
-  'dischargePort',
-  'grossOrArticle',
-  'constatations',
-];
+> = ['reportNumber', 'client'];
+
+function withTextFallback(value: string | undefined | null): string {
+  const trimmed = value?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : 'N/A';
+}
+
+function createInitialConstatations(): ConstatationItem[] {
+  return PREDEFINED_CONSTATATIONS.map((text, index) => ({
+    id: `default-${index}`,
+    text,
+    isChecked: true,
+    isCustom: false,
+  }));
+}
+
+function formatConstatationByContainerCount(text: string, hasMultipleContainers: boolean): string {
+  if (hasMultipleContainers) {
+    return text
+      .replace(/\bLe conteneur a subi\b/g, 'Les conteneurs ont subi')
+      .replace(/\ble conteneur a subi\b/g, 'les conteneurs ont subi')
+      .replace(/\bdu conteneur\b/g, 'des conteneurs')
+      .replace(/\bau conteneur\b/g, 'aux conteneurs')
+      .replace(/\bConteneur\b/g, 'Conteneurs')
+      .replace(/\bconteneur\b/g, 'conteneurs');
+  }
+
+  return text
+    .replace(/\bLes conteneurs ont subi\b/g, 'Le conteneur a subi')
+    .replace(/\bles conteneurs ont subi\b/g, 'le conteneur a subi')
+    .replace(/\bdes conteneurs\b/g, 'du conteneur')
+    .replace(/\baux conteneurs\b/g, 'au conteneur')
+    .replace(/\bConteneurs\b/g, 'Conteneur')
+    .replace(/\bconteneurs\b/g, 'conteneur');
+}
 
 function sanitizeFilenameSegment(input: string): string {
   const cleaned = input.trim().replace(/[^a-zA-Z0-9_-]+/g, '_');
@@ -76,6 +107,8 @@ export default function HomePage() {
   const [openedParcels, setOpenedParcels] = useState<OpenedParcelData[]>([{ parcelId: '', status: 'RAS' }]);
   const [hasCustomsSampling, setHasCustomsSampling] = useState(false);
   const [samplingItems, setSamplingItems] = useState<SamplingItemData[]>([{ item: '', identifier: '', quantity: '' }]);
+  const [constatationItems, setConstatationItems] = useState<ConstatationItem[]>(createInitialConstatations);
+  const [customConstatation, setCustomConstatation] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
@@ -100,7 +133,7 @@ export default function HomePage() {
     loadingPort: '',
     dischargePort: "Port d'Alger",
     grossOrArticle: '',
-    constatations: DEFAULT_CONSTATATIONS,
+    constatations: 'N/A',
     images,
   });
 
@@ -108,15 +141,48 @@ export default function HomePage() {
   const [uploadError, setUploadError] = useState<string>('');
 
   const pdfFormData = useMemo<PVFormData>(
-    () => ({
-      ...form,
-      containerData,
-      openedParcels,
-      hasCustomsSampling,
-      samplingItems,
-      images,
-    }),
-    [form, containerData, openedParcels, hasCustomsSampling, samplingItems, images],
+    () => {
+      const hasMultipleContainers = containerData.length > 1;
+      const selectedConstatations = constatationItems
+        .filter((item) => item.isChecked)
+        .map((item) => `• ${formatConstatationByContainerCount(item.text.trim(), hasMultipleContainers)}`);
+
+      return {
+        ...form,
+        reportNumber: withTextFallback(form.reportNumber),
+        client: withTextFallback(form.client),
+        transitaire: withTextFallback(form.transitaire),
+        interventionDate: withTextFallback(form.interventionDate),
+        location: withTextFallback(form.location),
+        factureNumber: withTextFallback(form.factureNumber),
+        blNumber: withTextFallback(form.blNumber),
+        numberOfPackages: withTextFallback(form.numberOfPackages),
+        packagingType: withTextFallback(form.packagingType),
+        goodsNature: withTextFallback(form.goodsNature),
+        shipName: withTextFallback(form.shipName),
+        arrivalDate: withTextFallback(form.arrivalDate),
+        loadingPort: withTextFallback(form.loadingPort),
+        dischargePort: withTextFallback(form.dischargePort),
+        grossOrArticle: withTextFallback(form.grossOrArticle),
+        constatations: selectedConstatations.length > 0 ? selectedConstatations.join('\n') : 'N/A',
+        containerData: containerData.map((item) => ({
+          container: withTextFallback(item.container),
+          seal: withTextFallback(item.seal),
+        })),
+        openedParcels: openedParcels.map((item) => ({
+          parcelId: withTextFallback(item.parcelId),
+          status: withTextFallback(item.status),
+        })),
+        hasCustomsSampling,
+        samplingItems: samplingItems.map((item) => ({
+          item: withTextFallback(item.item),
+          identifier: withTextFallback(item.identifier),
+          quantity: withTextFallback(item.quantity),
+        })),
+        images,
+      };
+    },
+    [form, containerData, openedParcels, hasCustomsSampling, samplingItems, images, constatationItems],
   );
 
   const clientOptions = useMemo(() => Object.keys(AUTO_FILL_BY_CLIENT), []);
@@ -193,6 +259,32 @@ export default function HomePage() {
     setSamplingItems((previous) =>
       previous.map((item, rowIndex) => (rowIndex === index ? { ...item, [field]: value } : item)),
     );
+  };
+
+  const handleConstatationToggle = (id: string) => {
+    setConstatationItems((previous) =>
+      previous.map((item) => (item.id === id ? { ...item, isChecked: !item.isChecked } : item)),
+    );
+  };
+
+  const addCustomConstatation = () => {
+    const trimmed = customConstatation.trim();
+    if (!trimmed) return;
+
+    setConstatationItems((previous) => [
+      ...previous,
+      {
+        id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        text: trimmed,
+        isChecked: true,
+        isCustom: true,
+      },
+    ]);
+    setCustomConstatation('');
+  };
+
+  const removeCustomConstatation = (id: string) => {
+    setConstatationItems((previous) => previous.filter((item) => item.id !== id || !item.isCustom));
   };
 
   const addSamplingItemRow = () => {
@@ -580,17 +672,58 @@ export default function HomePage() {
           )}
         </div>
 
-        <div className="mt-6">
-          <Field label="Constatations" required>
-            <textarea
-              name="constatations"
-              rows={8}
-              value={form.constatations}
-              onChange={handleTextChange}
-              placeholder="Décrivez le constat général. Pour Schneider, notez RAS ou l'anomalie dans la table des colis ouverts au-dessus."
-              className={`${inputClassName} resize-y`}
+        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <h2 className="text-base font-semibold text-slate-900">Constatations</h2>
+          <p className="mt-1 text-sm text-slate-600">Cochez les constatations à inclure dans le PDF, puis ajoutez vos phrases personnalisées si besoin.</p>
+
+          <div className="mt-4 space-y-3">
+            {constatationItems.map((item) => (
+              <div key={item.id} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2.5">
+                <input
+                  type="checkbox"
+                  checked={item.isChecked}
+                  onChange={() => handleConstatationToggle(item.id)}
+                  className="mt-1 h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-300"
+                />
+
+                <p className="flex-1 text-sm text-slate-700">{item.text}</p>
+
+                {item.isCustom ? (
+                  <button
+                    type="button"
+                    onClick={() => removeCustomConstatation(item.id)}
+                    className="rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-50"
+                  >
+                    Supprimer
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={customConstatation}
+              onChange={(event) => setCustomConstatation(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  addCustomConstatation();
+                }
+              }}
+              placeholder="Ajouter une constatation personnalisée"
+              className={inputClassName}
             />
-          </Field>
+
+            <button
+              type="button"
+              onClick={addCustomConstatation}
+              className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 sm:min-w-24"
+            >
+              Ajouter
+            </button>
+          </div>
         </div>
 
         <div className="mt-8 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-5 py-6 text-center">
