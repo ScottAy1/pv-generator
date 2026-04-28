@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
 function formatDate(dateValue: string): string {
   if (!dateValue) return 'N/A';
   const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return dateValue;
+  if (Number.isNaN(date.getTime())) return 'N/A';
 
   return new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',

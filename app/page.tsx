@@ -426,7 +426,7 @@ export default function HomePage() {
           </Field>
 
           <Field label="Intervention du" required>
-            <input type="date" name="interventionDate" value={form.interventionDate} onChange={handleTextChange} className={inputClassName} />
+            <input type="text" name="interventionDate" value={form.interventionDate} onChange={handleTextChange} placeholder="jj/mm/aaaa ou Laisser vide" className={inputClassName} />
           </Field>
 
           <Field label="Lieu d'intervention" required>
@@ -475,7 +475,7 @@ export default function HomePage() {
           </Field>
 
           <Field label="Date d'arrivée" required>
-            <input type="date" name="arrivalDate" value={form.arrivalDate} onChange={handleTextChange} className={inputClassName} />
+            <input type="text" name="arrivalDate" value={form.arrivalDate} onChange={handleTextChange} placeholder="jj/mm/aaaa ou Laisser vide" className={inputClassName} />
           </Field>
 
           <Field label="Port de chargement" required>
