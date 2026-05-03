@@ -9,7 +9,7 @@ const DynamicDownloadButton = dynamic(() => import('@/components/DownloadButton'
 const SCHNEIDER_CLIENT = 'SCHENEIDER ELECTRIC ALGERIE';
 const BASE_CONSTATATION_SENTENCES = [
   'Après pointage, vérification et ouverture des {containerNoun} nous avons constaté ce qui suit :',
-  'Le {containerWord} a subi une visite intégrale sur demande de l’inspecteur de douane chargé du dossier, lors de la visite plusieurs cartons ont été ouverts pour inspection par les services douane/fraude .',
+  '{containerSentence}',
   'Les colis ont été ouverts sur demande de l’inspecteur de douane chargé du dossier ;',
   'À l’ouverture des colis nous avons constaté que la marchandise à l’intérieur est à l’état neuf ;',
   'L’emballage a été déchiré pour inspection et vérification du matériel électrique par les services de douane ;',
@@ -54,10 +54,15 @@ function withTextFallback(value: string | undefined | null): string {
 
 function buildPredefinedConstatations(hasMultipleContainers: boolean): string[] {
   const containerNoun = hasMultipleContainers ? 'conteneurs' : 'conteneur';
-  const containerWord = hasMultipleContainers ? 'conteneurs' : 'conteneur';
+  
+  const containerSentence = hasMultipleContainers
+    ? 'Les conteneurs ont subi une visite intégrale sur demande de l\'inspecteur de douane chargé du dossier, lors de la visite plusieurs cartons ont été ouverts pour inspection par les services douane/fraude .'
+    : 'Le conteneur a subi une visite intégrale sur demande de l\'inspecteur de douane chargé du dossier, lors de la visite plusieurs cartons ont été ouverts pour inspection par les services douane/fraude .';
 
   return BASE_CONSTATATION_SENTENCES.map((sentence) =>
-    sentence.replace(/\{containerNoun\}/g, containerNoun).replace(/\{containerWord\}/g, containerWord),
+    sentence
+      .replace(/\{containerNoun\}/g, containerNoun)
+      .replace(/\{containerSentence\}/g, containerSentence),
   );
 }
 
