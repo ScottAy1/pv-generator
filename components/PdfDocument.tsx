@@ -72,6 +72,21 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 16,
   },
+  reportNumberBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: PRIMARY,
+    borderRadius: 6,
+    backgroundColor: '#eff6ff',
+    color: PRIMARY,
+    fontSize: 10,
+    fontWeight: 700,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
   logoBlock: {
     width: 180,
     minHeight: 90,
@@ -454,7 +469,7 @@ function PdfFooter({ reportNumber }: { reportNumber: string }) {
   );
 }
 
-function FirstPageHeader() {
+function FirstPageHeader({ reportNumber }: { reportNumber: string }) {
   return (
     <View style={styles.header}>
       <View style={styles.logoBlock}>
@@ -462,6 +477,7 @@ function FirstPageHeader() {
         <Text style={styles.logoPlaceholderText}>BECTIM Inspection</Text>
       </View>
       <View style={styles.companyCard}>
+        <Text style={styles.reportNumberBadge}>PV N° {valueOrFallback(reportNumber)}</Text>
         <Text style={styles.companyName}>BECTIM</Text>
         <Text style={styles.companyDetails}>Société d&apos;Expertise et de Contrôle Technique Industriel et Maritime</Text>
         <Text style={styles.companyDetails}>Inspection • Contrôle • Expertise</Text>
@@ -535,7 +551,7 @@ export default function PdfDocument({ data }: PdfDocumentProps) {
   return (
     <Document title={`PV_${valueOrFallback(data.reportNumber)}`}>
       <Page size="A4" style={styles.page}>
-        <FirstPageHeader />
+        <FirstPageHeader reportNumber={data.reportNumber} />
 
         <Text style={styles.title}>PROCÈS-VERBAL DE SURVEILLANCE</Text>
 
