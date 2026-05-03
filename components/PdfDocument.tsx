@@ -459,7 +459,7 @@ function FirstPageHeader() {
     <View style={styles.header}>
       <View style={styles.logoBlock}>
         <PdfImage src={LOGO_SRC} style={styles.logoImage} />
-        <Text style={styles.logoPlaceholderText}>assets/logo.png</Text>
+        <Text style={styles.logoPlaceholderText}>BECTIM Inspection</Text>
       </View>
       <View style={styles.companyCard}>
         <Text style={styles.companyName}>BECTIM</Text>
