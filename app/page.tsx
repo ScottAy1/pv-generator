@@ -97,6 +97,8 @@ function isImageFile(file: File): boolean {
 }
 
 export default function HomePage() {
+  const ACCESS_PASSCODE = '121012';
+
   const [containerData, setContainerData] = useState<ContainerSealData[]>([{ container: '', seal: '' }]);
   const [openedParcels, setOpenedParcels] = useState<OpenedParcelData[]>([{ parcelId: '', status: 'RAS' }]);
   const [hasCustomsSampling, setHasCustomsSampling] = useState(false);
@@ -106,6 +108,9 @@ export default function HomePage() {
   const [images, setImages] = useState<string[]>([]);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [passcodeInput, setPasscodeInput] = useState('');
+  const [passcodeError, setPasscodeError] = useState('');
 
   const [form, setForm] = useState<PVFormData>({
     reportNumber: '',
@@ -135,6 +140,14 @@ export default function HomePage() {
   const [uploadError, setUploadError] = useState<string>('');
 
   const hasMultipleContainers = containerData.length > 1;
+
+  useEffect(() => {
+    document.body.style.overflow = isUnlocked ? '' : 'hidden';
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isUnlocked]);
 
   useEffect(() => {
     const dynamicDefaults = buildPredefinedConstatations(hasMultipleContainers);
@@ -393,9 +406,26 @@ export default function HomePage() {
     }
   };
 
+  const handleUnlockSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (passcodeInput.trim() === ACCESS_PASSCODE) {
+      setIsUnlocked(true);
+      setPasscodeError('');
+      return;
+    }
+
+    setPasscodeError('Code invalide. Veuillez réessayer.');
+  };
+
   return (
-    <main className="min-h-screen bg-linear-to-b from-slate-100 via-white to-slate-100 px-4 py-10 sm:px-6 lg:px-8">
-      <section className="mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white/95 p-6 shadow-2xl shadow-slate-200 sm:p-8 lg:p-10">
+    <>
+      <div
+        className={isUnlocked ? '' : 'pointer-events-none select-none blur-sm'}
+        aria-hidden={!isUnlocked}
+      >
+        <main className="min-h-screen bg-linear-to-b from-slate-100 via-white to-slate-100 px-4 py-10 sm:px-6 lg:px-8">
+          <section className="mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white/95 p-6 shadow-2xl shadow-slate-200 sm:p-8 lg:p-10">
         <div className="mb-8 border-b border-slate-200 pb-5">
           <h1 className="text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">PV de Surveillance - Génération PDF</h1>
           <p className="mt-3 text-center text-sm text-slate-600 sm:text-base">
@@ -820,8 +850,50 @@ export default function HomePage() {
             isFormComplete={isFormComplete}
           />
         </div>
-      </section>
-    </main>
+          </section>
+        </main>
+      </div>
+
+      {!isUnlocked && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 px-4 backdrop-blur-sm">
+          <form
+            onSubmit={handleUnlockSubmit}
+            className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl"
+          >
+            <h2 className="text-xl font-bold text-slate-900">Accès protégé</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Entrez le code d&apos;accès pour ouvrir l&apos;application.
+            </p>
+
+            <label className="mt-5 block text-sm font-semibold text-slate-700" htmlFor="passcode-input">
+              Code d&apos;accès
+            </label>
+            <input
+              id="passcode-input"
+              type="password"
+              inputMode="numeric"
+              value={passcodeInput}
+              onChange={(event) => {
+                setPasscodeInput(event.target.value);
+                if (passcodeError) setPasscodeError('');
+              }}
+              autoFocus
+              className={`${inputClassName} mt-2`}
+              placeholder="••••••"
+            />
+
+            {passcodeError ? <p className="mt-2 text-sm font-medium text-red-600">{passcodeError}</p> : null}
+
+            <button
+              type="submit"
+              className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
+            >
+              Déverrouiller
+            </button>
+          </form>
+        </div>
+      )}
+    </>
   );
 }
 
