@@ -101,6 +101,8 @@ export default function HomePage() {
 
   const [containerData, setContainerData] = useState<ContainerSealData[]>([{ container: '', seal: '' }]);
   const [openedParcels, setOpenedParcels] = useState<OpenedParcelData[]>([{ parcelId: '', status: 'RAS' }]);
+  const [interventionDateIsNA, setInterventionDateIsNA] = useState(false);
+  const [arrivalDateIsNA, setArrivalDateIsNA] = useState(false);
   const [hasCustomsSampling, setHasCustomsSampling] = useState(false);
   const [samplingItems, setSamplingItems] = useState<SamplingItemData[]>([{ item: '', identifier: '', quantity: '' }]);
   const [constatationItems, setConstatationItems] = useState<ConstatationItem[]>(() => createInitialConstatations(false));
@@ -182,7 +184,7 @@ export default function HomePage() {
         reportNumber: withTextFallback(form.reportNumber),
         client: withTextFallback(form.client),
         transitaire: withTextFallback(form.transitaire),
-        interventionDate: withTextFallback(form.interventionDate),
+        interventionDate: interventionDateIsNA ? 'N/A' : withTextFallback(form.interventionDate),
         location: withTextFallback(form.location),
         factureNumber: withTextFallback(form.factureNumber),
         blNumber: withTextFallback(form.blNumber),
@@ -190,7 +192,7 @@ export default function HomePage() {
         packagingType: withTextFallback(form.packagingType),
         goodsNature: withTextFallback(form.goodsNature),
         shipName: withTextFallback(form.shipName),
-        arrivalDate: withTextFallback(form.arrivalDate),
+        arrivalDate: arrivalDateIsNA ? 'N/A' : withTextFallback(form.arrivalDate),
         loadingPort: withTextFallback(form.loadingPort),
         dischargePort: withTextFallback(form.dischargePort),
         grossOrArticle: withTextFallback(form.grossOrArticle),
@@ -212,7 +214,17 @@ export default function HomePage() {
         images,
       };
     },
-    [form, containerData, openedParcels, hasCustomsSampling, samplingItems, images, constatationItems],
+    [
+      form,
+      containerData,
+      openedParcels,
+      hasCustomsSampling,
+      samplingItems,
+      images,
+      constatationItems,
+      interventionDateIsNA,
+      arrivalDateIsNA,
+    ],
   );
 
   const clientOptions = useMemo(() => Object.keys(AUTO_FILL_BY_CLIENT), []);
@@ -255,6 +267,28 @@ export default function HomePage() {
       transitaire: autoFill?.transitaire ?? previous.transitaire,
       goodsNature: autoFill?.goodsNature ?? previous.goodsNature,
     }));
+  };
+
+  const handleDateChange = (field: 'interventionDate' | 'arrivalDate', value: string) => {
+    setForm((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+  };
+
+  const handleDateToggle = (field: 'interventionDate' | 'arrivalDate', checked: boolean) => {
+    if (field === 'interventionDate') {
+      setInterventionDateIsNA(checked);
+    } else {
+      setArrivalDateIsNA(checked);
+    }
+
+    if (checked) {
+      setForm((previous) => ({
+        ...previous,
+        [field]: '',
+      }));
+    }
   };
 
   const handleContainerChange = (index: number, field: keyof ContainerSealData, value: string) => {
@@ -460,8 +494,26 @@ export default function HomePage() {
             <input type="text" name="transitaire" value={form.transitaire} onChange={handleTextChange} className={inputClassName} />
           </Field>
 
-          <Field label="Intervention du" required>
-            <input type="text" name="interventionDate" value={form.interventionDate} onChange={handleTextChange} placeholder="jj/mm/aaaa ou Laisser vide" className={inputClassName} />
+          <Field label="Date d'intervention" required>
+            <div className="space-y-2">
+              <input
+                type="date"
+                name="interventionDate"
+                value={form.interventionDate}
+                onChange={(event) => handleDateChange('interventionDate', event.target.value)}
+                disabled={interventionDateIsNA}
+                className={`${inputClassName} ${interventionDateIsNA ? 'cursor-not-allowed bg-slate-100 text-slate-400' : ''}`}
+              />
+              <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={interventionDateIsNA}
+                  onChange={(event) => handleDateToggle('interventionDate', event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-300"
+                />
+                N/A
+              </label>
+            </div>
           </Field>
 
           <Field label="Lieu d'intervention" required>
@@ -510,7 +562,25 @@ export default function HomePage() {
           </Field>
 
           <Field label="Date d'arrivée" required>
-            <input type="text" name="arrivalDate" value={form.arrivalDate} onChange={handleTextChange} placeholder="jj/mm/aaaa ou Laisser vide" className={inputClassName} />
+            <div className="space-y-2">
+              <input
+                type="date"
+                name="arrivalDate"
+                value={form.arrivalDate}
+                onChange={(event) => handleDateChange('arrivalDate', event.target.value)}
+                disabled={arrivalDateIsNA}
+                className={`${inputClassName} ${arrivalDateIsNA ? 'cursor-not-allowed bg-slate-100 text-slate-400' : ''}`}
+              />
+              <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={arrivalDateIsNA}
+                  onChange={(event) => handleDateToggle('arrivalDate', event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-blue-700 focus:ring-blue-300"
+                />
+                N/A
+              </label>
+            </div>
           </Field>
 
           <Field label="Port de chargement" required>

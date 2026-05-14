@@ -558,7 +558,7 @@ export default function PdfDocument({ data }: PdfDocumentProps) {
         <View style={styles.infoTable}>
           <View style={styles.infoRow}>
             <View style={styles.infoCol}>
-              <Text style={styles.infoLabel}>Importateur</Text>
+              <Text style={styles.infoLabel}>Client</Text>
               <Text style={styles.infoValue}>{valueOrFallback(data.client)}</Text>
             </View>
             <View style={[styles.infoCol, styles.infoColNoBorder]}>
