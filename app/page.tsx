@@ -509,8 +509,8 @@ export default function HomePage() {
               <img src="/assets/logo.png" alt="Logo" className="h-24 w-24 rounded-2xl shadow-lg ring-2 ring-white sm:h-28 sm:w-28" />
             </div>
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl lg:text-5xl">PV de Surveillance</h1>
-              <p className="mt-2 text-lg font-semibold text-slate-600">Génération PDF</p>
+              <h1 className="bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-3xl font-bold tracking-tight text-transparent sm:text-4xl lg:text-5xl">Tap Bectim Pv Generator</h1>
+              <p className="mt-2 text-lg font-semibold text-slate-600">Génération PDF Professionnel</p>
               <p className="mt-4 text-sm leading-relaxed text-slate-500 sm:text-base">
                 Complétez le formulaire et générez un rapport PDF professionnel prêt à partager.
               </p>
