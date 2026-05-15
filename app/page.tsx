@@ -461,10 +461,15 @@ export default function HomePage() {
         <main className="min-h-screen bg-linear-to-b from-slate-100 via-white to-slate-100 px-4 py-10 sm:px-6 lg:px-8">
           <section className="mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white/95 p-6 shadow-2xl shadow-slate-200 sm:p-8 lg:p-10">
         <div className="mb-8 border-b border-slate-200 pb-5">
-          <h1 className="text-center text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">PV de Surveillance - Génération PDF</h1>
-          <p className="mt-3 text-center text-sm text-slate-600 sm:text-base">
-            Complétez le formulaire puis téléchargez un rapport PDF professionnel prêt à partager.
-          </p>
+          <div className="flex items-start gap-5 sm:gap-6">
+            <img src="/assets/logo.png" alt="Logo" className="h-24 w-24 flex-shrink-0 sm:h-28 sm:w-28" />
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">PV de Surveillance - Génération PDF</h1>
+              <p className="mt-3 text-sm text-slate-600 sm:text-base">
+                Complétez le formulaire puis téléchargez un rapport PDF professionnel prêt à partager.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
