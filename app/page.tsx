@@ -110,6 +110,8 @@ export default function HomePage() {
   const [images, setImages] = useState<string[]>([]);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [dragOverImageIndex, setDragOverImageIndex] = useState<number | null>(null);
+  const [draggedConstatationId, setDraggedConstatationId] = useState<string | null>(null);
+  const [dragOverConstatationId, setDragOverConstatationId] = useState<string | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState('');
   const [passcodeError, setPasscodeError] = useState('');
@@ -349,6 +351,47 @@ export default function HomePage() {
 
   const removeCustomConstatation = (id: string) => {
     setConstatationItems((previous) => previous.filter((item) => item.id !== id || !item.isCustom));
+  };
+
+  const moveConstatation = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+
+    setConstatationItems((previous) => {
+      const fromIndex = previous.findIndex((item) => item.id === fromId);
+      const toIndex = previous.findIndex((item) => item.id === toId);
+
+      if (fromIndex < 0 || toIndex < 0) return previous;
+
+      const next = [...previous];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  };
+
+  const handleConstatationDragStart = (id: string) => {
+    setDraggedConstatationId(id);
+    setDragOverConstatationId(id);
+  };
+
+  const handleConstatationDragEnter = (id: string) => {
+    if (draggedConstatationId === null) return;
+    setDragOverConstatationId(id);
+  };
+
+  const handleConstatationDragEnd = () => {
+    setDraggedConstatationId(null);
+    setDragOverConstatationId(null);
+  };
+
+  const handleConstatationDrop = (toId: string) => {
+    if (draggedConstatationId === null) {
+      handleConstatationDragEnd();
+      return;
+    }
+
+    moveConstatation(draggedConstatationId, toId);
+    handleConstatationDragEnd();
   };
 
   const addSamplingItemRow = () => {
@@ -847,28 +890,51 @@ export default function HomePage() {
           </div>
 
           <div className="mt-6 space-y-3">
-            {constatationItems.map((item) => (
-              <div key={item.id} className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm transition hover:shadow-md">
-                <input
-                  type="checkbox"
-                  checked={item.isChecked}
-                  onChange={() => handleConstatationToggle(item.id)}
-                  className="mt-1 h-5 w-5 rounded border-slate-300 accent-orange-600 focus:ring-orange-500"
-                />
+            {constatationItems.map((item) => {
+              const isDragging = draggedConstatationId === item.id;
+              const isDragOver = dragOverConstatationId === item.id && draggedConstatationId !== null && draggedConstatationId !== item.id;
 
-                <p className="flex-1 text-sm leading-relaxed text-slate-700">{item.text}</p>
+              return (
+                <div
+                  key={item.id}
+                  draggable
+                  onDragStart={() => handleConstatationDragStart(item.id)}
+                  onDragEnter={() => handleConstatationDragEnter(item.id)}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => handleConstatationDrop(item.id)}
+                  onDragEnd={handleConstatationDragEnd}
+                  className={`group flex items-start gap-3 rounded-lg border bg-white px-4 py-3 shadow-sm transition duration-200 ${
+                    isDragging
+                      ? 'scale-[0.98] cursor-grabbing opacity-60 shadow-lg'
+                      : 'cursor-grab hover:shadow-md'
+                  } ${isDragOver ? 'border-orange-500 ring-2 ring-orange-200' : 'border-slate-200'}`}
+                >
+                  <div className="flex shrink-0 items-center gap-2">
+                    <svg className="h-5 w-5 text-slate-400 opacity-0 transition group-hover:opacity-100" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M9 3h2v2H9V3zm0 4h2v2H9V7zm0 4h2v2H9v-2zm4-8h2v2h-2V3zm0 4h2v2h-2V7zm0 4h2v2h-2v-2z" />
+                    </svg>
+                    <input
+                      type="checkbox"
+                      checked={item.isChecked}
+                      onChange={() => handleConstatationToggle(item.id)}
+                      className="h-5 w-5 rounded border-slate-300 accent-orange-600 focus:ring-orange-500"
+                    />
+                  </div>
 
-                {item.isCustom ? (
-                  <button
-                    type="button"
-                    onClick={() => removeCustomConstatation(item.id)}
-                    className="rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-50 active:scale-95"
-                  >
-                    Supprimer
-                  </button>
-                ) : null}
-              </div>
-            ))}
+                  <p className="flex-1 text-sm leading-relaxed text-slate-700">{item.text}</p>
+
+                  {item.isCustom ? (
+                    <button
+                      type="button"
+                      onClick={() => removeCustomConstatation(item.id)}
+                      className="rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-50 active:scale-95"
+                    >
+                      Supprimer
+                    </button>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
